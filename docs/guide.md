@@ -3,48 +3,65 @@ icon: lucide/file-sliders
 ---
 
 # User Guide
+Make sure you've completed each step outlined on the [Getting Started](getting-started.md) page before continuing.
+
+
+## Run VTC
+
+To be able to run VTC, place your `.wav` files in a folder `audio_folder`  and run:
+
+```bash
+uv run scripts/infer.py      \
+    --wavs <audio_folder>    \
+    --output <output_folder> \
+    --device cpu
+```
+
+A helper script is also provided — edit the variables in `scripts/run.sh` and run `sh scripts/run.sh`.
+
+For more arguments check the [Command Line Interface Arguments](#command-line-interface-arguments) section.
+
 
 ## Understanding outputs
 
-After running VTC, you get:
+After running VTC, you get the following structure on disk with the `📂 rttm/` folder containing one RTTM file per audio. 
 
 ```
 <output_folder>/
-├── rttm/          # Final segments (with merging applied)
-├── raw_rttm/      # Raw model output (before merging)
-├── rttm.csv       # Final segments as CSV
-└── raw_rttm.csv   # Raw segments as CSV
+├── 📂 rttm/          # Final segments
+└── 📄 rttm.csv       # Final segments as a single CSV
 ```
 
-**Use `rttm.csv` for analysis.** Open it in any spreadsheet application — each row is one speech segment with a filename, start time (`onset`), end time (`offset`), and speaker label.
+**Use `rttm.csv` for analysis.** 
 
-The `raw_rttm/` outputs skip the post-processing step that merges short adjacent segments and removes noise. They're provided for debugging or custom pipelines.
+You can open it in any spreadsheet application or preferably load it as a dataframe using R or Python. Each row is one speech segment with a filename (`uid`), start time (`start_time_s`), end time (`duration_s`), and the assigned speaker label (`label`).
+
+Here is an example of a few detected segments and a visualisation of the segments
+
+```csv
+uid,              start_time_s, duration_s, label
+recording_jd7aks,         0.12,       1.20,   FEM
+recording_jd7aks,         3.30,       0.34,   MAL
+recording_jd7aks,         3.98,       1.98,   FEM
+recording_jd7aks,         5.86,       2.10,   MAL
+recording_jd7aks,         6.10,       1.90,  KCHI
+recording_jd7aks,         8.24,       0.52,   OCH
+```
+![Detected speech segments layed-out in the time dimension](assets/recording_jd7aks.png)
+
+The `📂 raw_rttm/` folder contains the raw RTTM segments detected by the models before any post-processing has been applied (that merges short adjacent segments and remove isolated detections). They're mostly provided for debugging or custom pipelines.
+You **MUST** use the `--keep_raw` argument when running VTC to get the raw RTTM files, otherwise the pipeline does not keep the files.
 
 ### RTTM format
 
-If you need the RTTM files (standard speech processing format), each line reads:
+The output also contains the RTTM files if needed, a standard format in speech processing. Each line represents a detected speech segment:
 
 ```
-SPEAKER <file_id> 1 <onset> <duration> <NA> <NA> <label> <NA> <NA>
+SPEAKER <uid> 1 <start_time_s> <duration_s> <NA> <NA> <label> <NA> <NA>
 ```
+Only four fields are relevant, `uid`, `start_time_s`, `duration_s` and `label`, which are the exact same as found in the exported CSV file.
+The remaining fields are placeholders (`1` and `<NA>`) required by the format but unused.
 
-Note: RTTM uses `onset + duration`, while the CSV uses `onset + offset`.
-
-## Accuracy
-
-VTC 2.0 performance on the held-out test set:
-
-| Model | KCHI | OCH | MAL | FEM | Average F1 |
-|-------|------|-----|-----|-----|------------|
-| VTC 1.0 | 68.2% | 30.5% | 41.2% | 63.7% | 50.9% |
-| VTC 1.5 | 68.4% | 20.6% | 56.7% | 68.9% | 53.6% |
-| **VTC 2.0** | **71.8%** | **51.4%** | **60.3%** | **74.8%** | **64.6%** |
-| Human 2 | 79.7% | 60.4% | 67.6% | 71.5% | 69.8% |
-
-**KCHI** and **FEM** are the most reliable classes. **OCH** is the weakest — use other-child counts with caution. **Overlapping speech** is a major source of error: when multiple people talk at once, VTC may attribute the speech to only one speaker.
-
-!!! warning "VTC outputs are estimates"
-    Classification errors propagate into downstream analyses. Always account for error margins when interpreting results.
 
 ## Speed
 
@@ -56,22 +73,22 @@ VTC 2.0 performance on the held-out test set:
 
 GPU processing is strongly recommended for large corpora. If you get out-of-memory errors, reduce the batch size.
 
-## Practical examples
 
-### Counting child vocalizations
+## Command Line Interface Arguments
+Here is the complete list of arguments you can use when running VTC.
 
-After running VTC, count KCHI segments from the command line:
-
-```bash
-grep "KCHI" my_predictions/rttm.csv | wc -l
-```
-
-Or open `rttm.csv` in a spreadsheet and filter by the label column.
-
-### Measuring caregiver input by gender
-
-Sum the durations of FEM vs. MAL segments in your CSV output. The `offset - onset` difference gives you each segment's duration in seconds.
-
-### Feeding into ALICE or ChildProject
-
-VTC's RTTM output can be directly used by [ALICE](https://github.com/orasanen/ALICE) (which requires VTC as a prerequisite) and imported into [ChildProject](https://childproject.readthedocs.io/) datasets as annotation sets. Use the merged `rttm/` files.
+| <div style="width: 140px;">Argument</div> | Default    | Description                                                        |
+|-----------------------|--------------------------------|--------------------------------------------------------------------|
+| `--config`            | `VTC-2.0/model/config.yml`     | Config file to be loaded and used for inference.                   |
+| `--checkpoint`        | `VTC-2.0/model/best.ckpt`      | Path to a pretrained model checkpoint.                             |
+| `--wavs`              | **required**.                  | Folder containing the audio files to run inference on.             |
+| `--output`            | **required**                   | Output path to the folder that will contain the final predictions. |
+| `--uris`              | —                              | Path to a file containing the list of URIs to use.                 |
+| `--save_logits`       | `False`                        | Save the logits to disk. Can be memory intensive.                  |
+| `--thresholds`        | —                              | Path to a thresholds dict to perform predictions via thresholding. |
+| `--min_duration_on_s` | `0.1`                          | Remove speech segments shorter than that many seconds.             |
+| `--min_duration_off_s`| `0.1`                          | Fill same-speaker gaps shorter than that many seconds.             |
+| `--batch_size`        | `128`                          | Batch size for the forward pass of the model.                      |
+| `--recursive_search`  | `False`                        | Recursively search for `.wav` files. May be slow.                  |
+| `--device`            | `cuda`                         | Device to use. Choices: `gpu`, `cuda`, `cpu`, `mps`.               |
+| `--keep_raw`          | `False`                        | Keep raw RTTM and save to `<output>/raw_rttm/`.                    |

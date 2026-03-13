@@ -1,6 +1,6 @@
 [project]
 site_name = "VTC — Voice Type Classifier"
-site_url = "https://laac-lscp.github.io/VTC/"
+site_url = "https://arxaqapi.github.io/LAAC-LSCP-documentation"
 site_description = "A deep learning model for classifying speakers in child-centered long-form audio recordings."
 site_author = "LAAC-LSCP"
 copyright = "&copy; 2026 LAAC-LSCP, ENS-PSL"
@@ -21,6 +21,9 @@ nav = [
         ] },
     ] },
 
+    { "BabyHuBERT" = [
+        "babyhubert/index.md"
+    ]}
 ]
 
 [project.theme]
@@ -31,6 +34,7 @@ features = [
     "navigation.path",
     "navigation.top",
     "navigation.footer",
+    # "navigation.instant.preview", # experimental :/
     "toc.follow",
     "content.code.copy",
 ]

@@ -56,22 +56,3 @@ uv run scripts/convert.py --input /path/to/raw_audio --output /path/to/converted
 # Or manually with ffmpeg (works with MP3, FLAC, M4A, etc.)
 ffmpeg -i input.mp3 -acodec pcm_s16le -ar 16000 -ac 1 output.wav
 ```
-
-## Run VTC
-
-Place your `.wav` files in a folder and run:
-
-```bash
-uv run scripts/infer.py \
-    --wavs my_audios \
-    --output my_predictions \
-    --device cpu
-```
-
-| Device flag | When to use |
-|-------------|-------------|
-| `cpu` | No GPU available |
-| `cuda` or `gpu` | NVIDIA GPU with CUDA |
-| `mps` | Apple Silicon (M1/M2/M3/M4) |
-
-A helper script is also provided — edit the variables in `scripts/run.sh` and run `sh scripts/run.sh`.
