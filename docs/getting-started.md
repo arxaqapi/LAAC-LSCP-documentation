@@ -87,7 +87,7 @@ If you run into problems during installation or when running VTC, check the tabl
 
 | Problem | Likely cause | Fix |
 |---------|-------------|-----|
-| `uv: command not found` | uv is not installed | Run `curl -LsSf https://astral.sh/uv/install.sh | sh` and restart your terminal |
+| `uv: command not found` | uv is not installed | For detailed installation instructions, see the [uv installation guide](https://docs.astral.sh/uv/getting-started/installation/) |
 | `ffmpeg: command not found` | ffmpeg is not installed | `sudo apt install ffmpeg` (Linux) or `brew install ffmpeg` (macOS) |
 | Model weights missing | Cloned without `--recurse-submodules` | Run `git lfs install && git submodule update --init --recursive` |
 | `CUDA out of memory` | Batch size is too large for your GPU | Add `--batch_size 64` (or lower) to your command, or use `--device cpu` |
