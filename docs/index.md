@@ -19,12 +19,23 @@ VTC is designed for naturalistic recordings that are captured by a portable reco
 
 - **Not a speech recognizer** — it identifies *who* speaks *when*, not *what* they say.
 - **Not a speaker diarizer** — it classifies speaker *types*, not individual identities (it cannot distinguish two adult females from each other).
+- **Not a LENA replacement** — while VTC and LENA both classify speakers in child-centered recordings, they are different systems. VTC is free and open-source, runs on any Unix machine with any WAV audio, and its code and model weights are publicly available. LENA is a commercial, proprietary system that requires its own hardware recorder. Their speaker categories are similar but not identical (e.g., VTC uses KCHI/OCH/MAL/FEM while LENA uses CHN/CXN/MAN/FAN among others). VTC can be [fine-tuned](advanced/finetuning.md) to your data; LENA cannot. For detailed accuracy comparisons, see the [ExELang book](https://bookdown.org/alecristia/exelang-book/accuracy.html). A full comparison table is available on the [Version History](misc/versions.md#vtc-vs-lena) page.
 
 ---
 
 ## Model Accuracy
-Here are the performance of VTC 2.0 as measured on the held-out set:
 
+The table below shows how well each version of VTC performs at detecting each speaker type. Performance is measured using **F1 score**, a standard metric that combines two things: how often the model correctly detects a speaker type (recall) and how often its detections are actually correct (precision). An F1 score of 100% would mean perfect performance; higher values are better, as indicated by the ↑ arrows in the column headers.
+
+Each column corresponds to a speaker label:
+
+- **KCHI** — the key child (the child wearing the recorder)
+- **OCH** — other children nearby (e.g., siblings, playmates)
+- **MAL** — adult male speakers
+- **FEM** — adult female speakers
+- **Average F1** — the average F1 score across all four speaker types
+
+The last row, "Human 2", shows the performance of a second human annotator compared to a first one. This gives a sense of how well even humans agree on these labels, and serves as an upper bound for what we can expect from an automated model.
 
 | Model | KCHI ↑ | OCH ↑ | MAL ↑ | FEM ↑ | Average F1 ↑ |
 |-------|------|-----|-----|-----|------------|
