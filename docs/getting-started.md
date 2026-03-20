@@ -15,26 +15,47 @@ icon: lucide/package-open
 
 Install system dependencies, then clone and set up VTC:
 
-```bash
-# Install uv
-curl -LsSf https://astral.sh/uv/install.sh | sh
+=== "Linux (Ubuntu/Debian)"
 
-# Install ffmpeg and git-lfs (Ubuntu/Debian)
-sudo apt install ffmpeg git-lfs
+    ```bash
+    # Install uv
+    curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Clone the repo (--recurse-submodules is required for model weights)
-git lfs install
-git clone --recurse-submodules https://github.com/LAAC-LSCP/VTC.git
-cd VTC
+    # Install ffmpeg and git-lfs (Ubuntu/Debian)
+    sudo apt install ffmpeg git-lfs
 
-# Install Python dependencies
-uv sync
+    # Clone the repo (--recurse-submodules is required for model weights)
+    git lfs install
+    git clone --recurse-submodules https://github.com/LAAC-LSCP/VTC.git
+    cd VTC
 
-# Verify everything is set up
-./check_sys_dependencies.sh
-```
+    # Install Python dependencies
+    uv sync
 
-On **macOS**, use `brew install ffmpeg git-lfs` instead of `apt`.
+    # Verify everything is set up
+    ./check_sys_dependencies.sh
+    ```
+
+=== "MacOS"
+
+    ```bash
+    # Install uv
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+
+    # Install ffmpeg and git-lfs (MacOS)
+    brew install ffmpeg git-lfs
+
+    # Clone the repo (--recurse-submodules is required for model weights)
+    git lfs install
+    git clone --recurse-submodules https://github.com/LAAC-LSCP/VTC.git
+    cd VTC
+
+    # Install Python dependencies
+    uv sync
+
+    # Verify everything is set up
+    ./check_sys_dependencies.sh
+    ```
 
 !!! warning "Don't skip `--recurse-submodules`"
     Without this flag, model weights won't be downloaded and VTC will fail.
