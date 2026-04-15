@@ -69,6 +69,18 @@
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
+    cursor: pointer;
+    user-select: none;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    transition: opacity 0.15s, background 0.15s;
+  }
+  .legend .item:hover {
+    background: var(--panel);
+  }
+  .legend .item.hidden {
+    opacity: 0.4;
+    text-decoration: line-through;
   }
   .legend .swatch {
     width: 14px;
@@ -255,11 +267,28 @@
 
   // Populate the global legend
   const legendEl = document.getElementById("legend");
+  const visibility = { f1: true, precision: true, recall: true };
+  const legendItems = {};
+
   for (const [name, color] of Object.entries(colorMap)) {
     const item = document.createElement("span");
     item.className = "item";
+    item.dataset.metric = name;
     item.innerHTML = `<span class="swatch" style="background:${color}"></span>${name}`;
+    item.addEventListener("click", () => toggleMetric(name));
     legendEl.appendChild(item);
+    legendItems[name] = item;
+  }
+
+  function toggleMetric(name) {
+    visibility[name] = !visibility[name];
+    legendItems[name].classList.toggle("hidden", !visibility[name]);
+    panels.forEach(p => {
+      p.chart.dispatchAction({
+        type: visibility[name] ? "legendSelect" : "legendUnSelect",
+        name,
+      });
+    });
   }
 
   function argmaxF1(rows) {
@@ -329,7 +358,7 @@
           return [header, ...lines].join("<br>");
         },
       },
-      legend: { show: false },
+      legend: { show: false, data: ["f1", "precision", "recall"] },
       xAxis: {
         type: "category",
         data: ts,
