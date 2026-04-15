@@ -45,8 +45,8 @@
     margin-bottom: 0.5rem;
   }
   .macro .label {
-    font-size: 0.75rem;
-    text-transform: uppercase;
+    font-size: 1.25rem;
+    /* text-transform: uppercase; */
     letter-spacing: 0.06em;
     color: var(--muted);
   }
@@ -75,6 +75,33 @@
     height: 3px;
     border-radius: 2px;
     display: inline-block;
+  }
+
+  .presets {
+    display: flex;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
+  }
+  .presets button {
+    font: inherit;
+    font-size: 0.78rem;
+    color: var(--fg);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.3rem 0.7rem;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .presets button:hover {
+    border-color: var(--accent);
+  }
+  .presets button.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+    font-weight: 600;
   }
 
   .grid {
@@ -157,8 +184,13 @@
 <body>
 
 <div class="macro">
-  <span class="label">Macro F1</span>
+  <span class="label">Macro F1:</span>
   <span class="value" id="macro-f1">–</span>
+</div>
+
+<div class="presets">
+  <button type="button" data-preset="max_f1">Max F1</button>
+  <button type="button" data-preset="high_precision">High precision</button>
 </div>
 
 <div class="legend" id="legend"></div>
@@ -209,6 +241,18 @@
   const mutedColor = cssVar("--muted", "#666");
   const colorMap = { f1: "#e15759", precision: "#4e79a7", recall: "#59a14f" };
 
+  // ─────────────────────────────────────────────────────────────
+  // Hardcoded preset: high-precision thresholds, one per class.
+  // Edit these values to match your model. Any class missing from
+  // the map will fall back to its argmax-F1 threshold.
+  // ─────────────────────────────────────────────────────────────
+  const HIGH_PRECISION_THRESHOLDS = {
+    KCHI:  0.8,
+    OCH:  0.52,
+    MAL: 0.75,
+    FEM: 0.80,
+  };
+
   // Populate the global legend
   const legendEl = document.getElementById("legend");
   for (const [name, color] of Object.entries(colorMap)) {
@@ -222,6 +266,27 @@
     let best = 0;
     for (let i = 1; i < rows.length; i++) if (rows[i].f1 > rows[best].f1) best = i;
     return best;
+  }
+
+  // Find the index in `rows` whose threshold `t` is closest to the target
+  function nearestIdx(rows, target) {
+    let best = 0;
+    let bestDist = Math.abs(rows[0].t - target);
+    for (let i = 1; i < rows.length; i++) {
+      const d = Math.abs(rows[i].t - target);
+      if (d < bestDist) { best = i; bestDist = d; }
+    }
+    return best;
+  }
+
+  // Resolve the index each panel should use for a given preset name
+  function presetIndex(label, rows, preset) {
+    if (preset === "high_precision") {
+      const target = HIGH_PRECISION_THRESHOLDS[label];
+      if (target != null) return nearestIdx(rows, target);
+    }
+    // default / max_f1
+    return argmaxF1(rows);
   }
 
   const macroEl = document.getElementById("macro-f1");
@@ -270,7 +335,7 @@
         data: ts,
         name: "Threshold",
         nameLocation: "middle",
-        nameGap: 22,
+        nameGap: 21,
         nameTextStyle: { color: fgColor, fontSize: 11, fontWeight: 600 },
         axisLabel: { color: mutedColor, fontSize: 9, interval: tickInterval - 1 },
         axisLine: { lineStyle: { color: mutedColor } },
@@ -295,9 +360,11 @@
     macroEl.textContent = fmt(sum / panels.length);
   }
 
+  let activePreset = "max_f1";
+
   function createPanel(label) {
     const rows = byLabel[label];
-    const idx = argmaxF1(rows);
+    const idx = presetIndex(label, rows, activePreset);
 
     const panel = document.createElement("div");
     panel.className = "panel";
@@ -366,6 +433,26 @@
 
   labels.forEach(createPanel);
   window.addEventListener("resize", () => panels.forEach(p => p.chart.resize()));
+
+  // Preset button wiring
+  const presetButtons = document.querySelectorAll(".presets button");
+  function applyPreset(preset) {
+    activePreset = preset;
+    presetButtons.forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.preset === preset);
+    });
+    panels.forEach(p => {
+      p.idx = presetIndex(p.label, p.rows, preset);
+      p.slider.value = p.idx;
+      p.refresh();
+    });
+  }
+  presetButtons.forEach(btn => {
+    btn.addEventListener("click", () => applyPreset(btn.dataset.preset));
+  });
+
+  // Activate Max F1 by default
+  applyPreset("max_f1");
 })();
 </script>
 
