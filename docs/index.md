@@ -27,13 +27,7 @@ VTC is designed for naturalistic recordings that are captured by a portable reco
 
 The table below shows how well each version of VTC performs at detecting each speaker type. Performance is measured using **F1 score**, a standard metric that combines two things: how often the model correctly detects a speaker type (recall) and how often its detections are actually correct (precision). An F1 score of 100% would mean perfect performance; higher values are better, as indicated by the ↑ arrows in the column headers.
 
-Each column corresponds to a speaker label:
-
-- **KCHI** — the key child (the child wearing the recorder)
-- **OCH** — other children nearby (e.g., siblings, playmates)
-- **MAL** — adult male speakers
-- **FEM** — adult female speakers
-- **Average F1** — the average F1 score across all four speaker types
+Each column corresponds to one of the aformentioned speaker labels and an additional **Average F1** column is added, the average F1 score across all four speaker types.
 
 The last row, "Human 2", shows the performance of a second human annotator compared to a first one. This gives a sense of how well even humans agree on these labels, and serves as an upper bound for what we can expect from an automated model.
 
@@ -41,7 +35,8 @@ The last row, "Human 2", shows the performance of a second human annotator compa
 |-------|------|-----|-----|-----|------------|
 | VTC 1.0 | 68.2% | 30.5% | 41.2% | 63.7% | 50.9% |
 | VTC 1.5 | 68.4% | 20.6% | 56.7% | 68.9% | 53.6% |
-| **VTC 2.0** | **71.8%** | **51.4%** | **60.3%** | **74.8%** | **64.6%** |
+| **VTC 2.0** | **71.8%** | 51.4% | 60.3% | 74.8% | 64.6% |
+| **VTC 2.1** | 67.1% | **56.1%** | **68.8%** | **75.5%** | **66.9%** |
 | Human 2 | 79.7% | 60.4% | 67.6% | 71.5% | 69.8% |
 
 **KCHI** and **FEM** are the most reliable classes. **OCH** is the weakest — use other-child counts with caution.
