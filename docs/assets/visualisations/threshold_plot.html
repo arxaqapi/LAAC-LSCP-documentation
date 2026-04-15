@@ -201,7 +201,7 @@
 
 <div class="macro">
   <span class="label">Macro F1: </span>
-  <span class="value" id="macro-f1">–</span>
+  <span class="value" id="macro-f1">-</span>
 </div>
 
 <div class="legend" id="legend"></div>
@@ -245,7 +245,8 @@
     return;
   }
 
-  const fmt = (x) => (x == null || Number.isNaN(x) ? "–" : x.toFixed(4));
+  // Format a 0-1 metric as a 0-100 percentage with 2 decimals
+  const fmt = (x) => (x == null || Number.isNaN(x) ? "-" : (x * 100).toFixed(2));
   const cssVar = (name, fallback) =>
     getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
   const fgColor = cssVar("--fg", "#222");
@@ -329,7 +330,7 @@
       symbol: "none",
       lineStyle: { width: 1.5 },
       itemStyle: { color: colorMap[k] },
-      data: rows.map(r => [r.t, r[k]]),
+      data: rows.map(r => [r.t, r[k] * 100]),
       ...(k === "f1" ? {
         markLine: {
           symbol: "none",
@@ -348,9 +349,9 @@
         textStyle: { fontSize: 11 },
         formatter: (params) => {
           const t = Number(params[0].axisValue).toFixed(3);
-          const header = `threshold: ${t}`;
+          const header = `Threshold: ${t}`;
           const lines = params.map(
-            (p) => `${p.marker} ${p.seriesName}: ${p.value[1].toFixed(4)}`
+            (p) => `${p.marker} ${p.seriesName}: ${p.value[1].toFixed(2)} %`
           );
           return [header, ...lines].join("<br>");
         },
@@ -375,8 +376,8 @@
       yAxis: {
         type: "value",
         min: 0,
-        max: 1,
-        name: `${className} — Score`,
+        max: 100,
+        name: `Metric value (%)`,
         nameLocation: "middle",
         nameGap: 30,
         nameTextStyle: { color: fgColor, fontSize: 11, fontWeight: 600 },
@@ -389,7 +390,7 @@
 
   function updateMacro() {
     const sum = panels.reduce((acc, p) => acc + p.rows[p.idx].f1, 0);
-    macroEl.textContent = fmt(sum / panels.length);
+    macroEl.textContent = fmt(sum / panels.length) + "%";
   }
 
   let activePreset = "max_f1";
@@ -404,15 +405,15 @@
       <div class="panel-header">
         <span class="title">${label}</span>
         <div class="stats">
-          <div class="stat"><span class="k">F1</span><span class="v" data-k="f1">–</span></div>
-          <div class="stat"><span class="k">P</span><span class="v" data-k="precision">–</span></div>
-          <div class="stat"><span class="k">R</span><span class="v" data-k="recall">–</span></div>
+          <div class="stat"><span class="k">F1</span><span class="v" data-k="f1">-</span>%</div>
+          <div class="stat"><span class="k">P</span><span class="v" data-k="precision">-</span>%</div>
+          <div class="stat"><span class="k">R</span><span class="v" data-k="recall">-</span>%</div>
         </div>
       </div>
       <div class="slider-row">
         <label>Threshold</label>
         <input type="range" min="0" max="${rows.length - 1}" step="1" value="${idx}">
-        <span class="thresh">–</span>
+        <span class="thresh">-</span>
       </div>
       <div class="chart"></div>
     `;
