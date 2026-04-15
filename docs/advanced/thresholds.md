@@ -2,7 +2,7 @@
 icon: lucide/chart-column-decreasing
 ---
 
-!!! warning "Under construction"
+<!-- !!! warning "Under construction" -->
 
 
 # Threshold selection
@@ -21,11 +21,17 @@ uv run scripts/infer.py      \
     --device cpu
 ```
 
-For manual threholds selection, you can refer to the following figure, create your own threshold file and use it 
+You can use the following interactive visualizer by dragging each slider, or clicking directly on a chart, to set the decision threshold per class.
+The macro-F1 at the top updates live as you tune.
+
+<iframe src="../../assets/visualisations/threshold_plot.html?data=tuning_results.json"
+        width="100%" height="700" style="border:0;"></iframe>
+
+<!-- For manual threholds selection, you can refer to the following figure, create your own threshold file and use it 
 
 <!-- Insert ~nice~ figure of threholds -->
 
-
+<!-- 
 ## Tuning the model on your own data
 A simple way to adapt the model to your own data is to tune the thresholds on your own data.
 For that you will need a small set of annotated data and then use the inference script to generate logits and then run the tuning pipeline that will grid search over candidate threhsolds and outpout the ones maximizing the average F1 score over all classes.
@@ -45,6 +51,8 @@ uv run scripts/infer.py      \
     --device cpu
 ```
 
-You can use the following interactive visualizer to see how changing thresholds changes the performance profile of the model.
+You can use the following interactive visualizer by dragging each slider, or clicking directly on a chart, to set the decision threshold per class.
+The macro-F1 at the top updates live as you tune.
+
 <iframe src="/assets/visualisations/threshold_plot.html?data=tuning_results.json"
-        width="100%" height="660" style="border:0;"></iframe>
+        width="100%" height="660" style="border:0;"></iframe> -->
