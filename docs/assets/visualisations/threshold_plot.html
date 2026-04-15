@@ -38,15 +38,14 @@
     align-items: baseline;
     justify-content: center;
     gap: 0.5rem;
-    background: var(--panel);
-    border: 1px solid var(--border);
+    /* background: var(--panel); */
+    /* border: 1px solid var(--border); */
     border-radius: 8px;
     padding: 0.5rem 0.75rem;
     margin-bottom: 0.5rem;
   }
   .macro .label {
     font-size: 1.25rem;
-    /* text-transform: uppercase; */
     letter-spacing: 0.06em;
     color: var(--muted);
   }
@@ -165,7 +164,7 @@
   .slider-row label {
     font-size: 0.7rem;
     color: var(--muted);
-    text-transform: uppercase;
+    /* text-transform: uppercase; */
     letter-spacing: 0.04em;
   }
   .slider-row input[type="range"] {
@@ -195,14 +194,14 @@
 </head>
 <body>
 
-<div class="macro">
-  <span class="label">Macro F1:</span>
-  <span class="value" id="macro-f1">–</span>
-</div>
-
 <div class="presets">
   <button type="button" data-preset="max_f1">Max F1</button>
   <button type="button" data-preset="high_precision">High precision</button>
+</div>
+
+<div class="macro">
+  <span class="label">Macro F1: </span>
+  <span class="value" id="macro-f1">–</span>
 </div>
 
 <div class="legend" id="legend"></div>
@@ -323,9 +322,6 @@
   const panels = [];
 
   function buildOption(rows, markX, className) {
-    const ts = rows.map(r => r.t.toFixed(4));
-    // Show only ~6 ticks on the x-axis to avoid clutter at small widths
-    const tickInterval = Math.max(1, Math.floor(rows.length / 6));
     const series = ["f1", "precision", "recall"].map(k => ({
       name: k,
       type: "line",
@@ -333,7 +329,7 @@
       symbol: "none",
       lineStyle: { width: 1.5 },
       itemStyle: { color: colorMap[k] },
-      data: rows.map(r => r[k]),
+      data: rows.map(r => [r.t, r[k]]),
       ...(k === "f1" ? {
         markLine: {
           symbol: "none",
@@ -351,23 +347,30 @@
         trigger: "axis",
         textStyle: { fontSize: 11 },
         formatter: (params) => {
-          const header = `threshold: ${params[0].axisValue}`;
+          const t = Number(params[0].axisValue).toFixed(3);
+          const header = `threshold: ${t}`;
           const lines = params.map(
-            (p) => `${p.marker} ${p.seriesName}: ${p.value.toFixed(4)}`
+            (p) => `${p.marker} ${p.seriesName}: ${p.value[1].toFixed(4)}`
           );
           return [header, ...lines].join("<br>");
         },
       },
       legend: { show: false, data: ["f1", "precision", "recall"] },
       xAxis: {
-        type: "category",
-        data: ts,
+        type: "value",
+        min: 0,
+        max: 1,
         name: "Threshold",
         nameLocation: "middle",
         nameGap: 21,
         nameTextStyle: { color: fgColor, fontSize: 11, fontWeight: 600 },
-        axisLabel: { color: mutedColor, fontSize: 9, interval: tickInterval - 1 },
+        axisLabel: {
+          color: mutedColor,
+          fontSize: 9,
+          formatter: (v) => v.toFixed(1),
+        },
         axisLine: { lineStyle: { color: mutedColor } },
+        splitNumber: 10,
       },
       yAxis: {
         type: "value",
@@ -407,7 +410,7 @@
         </div>
       </div>
       <div class="slider-row">
-        <label>Thr.</label>
+        <label>Threshold</label>
         <input type="range" min="0" max="${rows.length - 1}" step="1" value="${idx}">
         <span class="thresh">–</span>
       </div>
@@ -425,19 +428,19 @@
     };
 
     const chart = echarts.init(chartEl, null, { renderer: "svg" });
-    chart.setOption(buildOption(rows, rows[idx].t.toFixed(4), label), true);
+    chart.setOption(buildOption(rows, rows[idx].t, label), true);
 
     const state = { label, rows, idx, chart, slider, threshEl, statEls };
     panels.push(state);
 
     function refresh() {
       const row = state.rows[state.idx];
-      state.threshEl.textContent = row.t.toFixed(4);
+      state.threshEl.textContent = row.t.toFixed(3);
       statEls.f1.textContent = fmt(row.f1);
       statEls.precision.textContent = fmt(row.precision);
       statEls.recall.textContent = fmt(row.recall);
       chart.setOption({
-        series: [{ name: "f1", markLine: { data: [{ xAxis: row.t.toFixed(4) }] } }],
+        series: [{ name: "f1", markLine: { data: [{ xAxis: row.t }] } }],
       });
       updateMacro();
     }
@@ -451,8 +454,8 @@
     chart.getZr().on("click", (e) => {
       const point = [e.offsetX, e.offsetY];
       if (!chart.containPixel("grid", point)) return;
-      const xIdx = chart.convertFromPixel({ xAxisIndex: 0 }, e.offsetX);
-      state.idx = Math.max(0, Math.min(state.rows.length - 1, Math.round(xIdx)));
+      const xVal = chart.convertFromPixel({ xAxisIndex: 0 }, e.offsetX);
+      state.idx = nearestIdx(state.rows, xVal);
       slider.value = state.idx;
       refresh();
     });
